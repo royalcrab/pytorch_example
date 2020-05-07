@@ -11,26 +11,30 @@ from torch.optim.lr_scheduler import StepLR
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)
-        self.conv2 = nn.Conv2d(32, 64, 3, 1)
-        self.dropout1 = nn.Dropout2d(0.25)
-        self.dropout2 = nn.Dropout2d(0.5)
-        self.fc1 = nn.Linear(9216, 128)
-        self.fc2 = nn.Linear(128, 10)
+        # self.conv1 = nn.Conv2d(1, 32, 3, 1)
+        self.conv1 = nn.Conv2d(1, 32, 3, 1)    # 入力1, 出力32x32
+        # self.conv2 = nn.Conv2d(32, 64, 3, 1)
+        self.conv2 = nn.Conv2d(32, 64, 3, 1)   # 入力32, 出力64
+        self.dropout1 = nn.Dropout2d(0.25)     # 出力は 1/4
+        self.dropout2 = nn.Dropout2d(0.5)      # 出力は 1/2
+        self.fc1 = nn.Linear(9216, 128)        # in 9216 = 64 x 8 x 2 x 9
+        # self.fc2 = nn.Linear(128, 10)
+        self.fc2 = nn.Linear(128, 1)
 
     def forward(self, x):
-        x = self.conv1(x)
+        x = self.conv1(x)           # in 1 out 32, 3 x 3
         x = F.relu(x)
-        x = self.conv2(x)
+        x = self.conv2(x)           # in 32 out 64, 3 x 3
         x = F.relu(x)
-        x = F.max_pool2d(x, 2)
-        x = self.dropout1(x)
-        x = torch.flatten(x, 1)
+        x = F.max_pool2d(x, 2)      # in 64 x 3 x 3 -> 32 x 3 x 3
+        x = self.dropout1(x)        # 
+        x = torch.flatten(x, 1)     # in 
         x = self.fc1(x)
         x = F.relu(x)
         x = self.dropout2(x)
         x = self.fc2(x)
-        output = F.log_softmax(x, dim=1)
+        # output = F.log_softmax(x, dim=1)
+        output = x
         return output
 
 
@@ -40,7 +44,8 @@ def train(args, model, device, train_loader, optimizer, epoch):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
-        loss = F.nll_loss(output, target)
+        # loss = F.nll_loss(output, target)
+        loss = F.mse_loss( output, target )
         loss.backward()
         optimizer.step()
         if batch_idx % args.log_interval == 0:
