@@ -52,7 +52,7 @@ def train(args, model, device, train_loader, optimizer, epoch):
         # print(output)
         # print(target)
         #loss = F.nll_loss(output, target)
-        mse = nn.MSELoss(reduction='sum')
+        mse = nn.MSELoss()
         # loss = mse(output, target)
         loss = mse(output, c )
         loss.backward()
