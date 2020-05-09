@@ -12,30 +12,32 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         # self.conv1 = nn.Conv2d(1, 32, 3, 1)
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)    # 入力1, 出力32x32
+        self.conv1 = nn.Conv2d(1, 32, 3, 1)    # 入力1, 出力32層、カーネル3
         # self.conv2 = nn.Conv2d(32, 64, 3, 1)
-        self.conv2 = nn.Conv2d(32, 64, 3, 1)   # 入力32, 出力64
-        self.dropout1 = nn.Dropout2d(0.25)     # 出力は 1/4
-        self.dropout2 = nn.Dropout2d(0.5)      # 出力は 1/2
+        self.conv2 = nn.Conv2d(32, 64, 3, 1)   # 入力32層, 出力64層、かーねる3
+        self.dropout1 = nn.Dropout2d(0.25)     # 出力は 1/4 ドロップ
+        self.dropout2 = nn.Dropout2d(0.5)      # 出力は 1/2 ドロップ
         self.fc1 = nn.Linear(9216, 128)        # in 9216 = 64 x 8 x 2 x 9
         # self.fc2 = nn.Linear(128, 10)
-        self.fc2 = nn.Linear(128, 1)
+        self.fc2 = nn.Linear(128,1)
+        # self.mse = nn.MSELoss()
+        
 
     def forward(self, x):
         x = self.conv1(x)           # in 1 out 32, 3 x 3
         x = F.relu(x)
         x = self.conv2(x)           # in 32 out 64, 3 x 3
         x = F.relu(x)
-        x = F.max_pool2d(x, 2)      # in 64 x 3 x 3 -> 32 x 3 x 3
-        x = self.dropout1(x)        # 
-        x = torch.flatten(x, 1)     # in 
-        x = self.fc1(x)
+        x = F.max_pool2d(x, 2)      # ここの捜査が多分いちばんわかってない。
+        x = self.dropout1(x)        # 1/4 ドロップ
+        x = torch.flatten(x, 1)     # 複数層 (3) を 1層にフラット化
+        x = self.fc1(x)             # ここの in が 9616 で 64 * 32 * 9 になってる。out は 128
         x = F.relu(x)
-        x = self.dropout2(x)
-        x = self.fc2(x)
-        # output = F.log_softmax(x, dim=1)
-        output = x
-        return output
+        x = self.dropout2(x)        # 1/2 ドロップ。ドロップしてもサイズはかわらない。
+        x = self.fc2(x)             # 入力 128
+        # x = F.log_softmax(x, dim=1) # softmax は
+        # output = self.mse(x)
+        return x
 
 
 def train(args, model, device, train_loader, optimizer, epoch):
@@ -43,9 +45,16 @@ def train(args, model, device, train_loader, optimizer, epoch):
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
-        output = model(data)
-        # loss = F.nll_loss(output, target)
-        loss = F.mse_loss( output, target )
+        a = model(data)
+        b = torch.t(a)
+        output = torch.flatten(b)
+        c = target.float()
+        # print(output)
+        # print(target)
+        #loss = F.nll_loss(output, target)
+        mse = nn.MSELoss(reduction='sum')
+        # loss = mse(output, target)
+        loss = mse(output, c )
         loss.backward()
         optimizer.step()
         if batch_idx % args.log_interval == 0:
@@ -95,14 +104,19 @@ def main():
 
     parser.add_argument('--save-model', action='store_true', default=False,
                         help='For Saving the current Model')
-    args = parser.parse_args()
-    use_cuda = not args.no_cuda and torch.cuda.is_available()
+    args = parser.parse_args() # ここまではパラメータの処理
+    use_cuda = not args.no_cuda and torch.cuda.is_available() 
+    # cuda が available なら device としてcuda を使う
 
     torch.manual_seed(args.seed)
-
+    # torch.manual_seed(1)
+    
     device = torch.device("cuda" if use_cuda else "cpu")
 
+    # cuda 使用時の設定
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+
+    # MNIST データのロード
     train_loader = torch.utils.data.DataLoader(
         datasets.MNIST('../data', train=True, download=True,
                        transform=transforms.Compose([
@@ -132,3 +146,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+#net = Net()
+#print(net)
+
