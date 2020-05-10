@@ -46,16 +46,16 @@ def train(args, model, device, train_loader, optimizer, epoch):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         a = model(data)
-        b = torch.t(a)
-        output = torch.flatten(b)
-        c = target.float()
+        b = torch.t(a) # 行列を転置
+        output = torch.flatten(b) # [[n]] みたいになってるので内側の括弧を外す
+        c = target.float()        # target は整数の行列なので float に変換する。
         # print(output)
         # print(target)
         #loss = F.nll_loss(output, target)
-        mse = nn.MSELoss()
+        mse = nn.MSELoss()        # 最小二乗誤差関数を mse という名前にする
         # loss = mse(output, target)
-        loss = mse(output, c )
-        loss.backward()
+        loss = mse(output, c )    # 最小二乗誤差を計算
+        loss.backward()           # 誤差の逆伝播
         optimizer.step()
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
@@ -146,6 +146,7 @@ def main():
         batch_size=args.test_batch_size, shuffle=True, **kwargs)
 
     model = Net().to(device)
+    # 最適化関数の指定。AdaDelta が使用されている。
     optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
 
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
