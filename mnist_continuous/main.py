@@ -76,11 +76,12 @@ def test(model, device, test_loader):
 
             b = torch.t(output)
             d = torch.flatten(b)
+            e = torch.round(d)
             c = target.float()
 
             print(d)
             print(c)
-            
+
             #test_loss += mse(output, c).item() # とりあえずここまではうまくいった
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
