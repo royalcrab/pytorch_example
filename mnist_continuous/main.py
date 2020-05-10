@@ -11,10 +11,10 @@ from torch.optim.lr_scheduler import StepLR
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        # self.conv1 = nn.Conv2d(1, 32, 3, 1)
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)    # 入力1, 出力32層、カーネル3
-        # self.conv2 = nn.Conv2d(32, 64, 3, 1)
-        self.conv2 = nn.Conv2d(32, 64, 3, 1)   # 入力32層, 出力64層、かーねる3
+        self.conv1 = nn.Conv2d(1, 32, 3, 1) # 28x28x1 -> 22x22x 16
+        # self.conv1 = nn.Conv2d(1, 32, 3, 1)    # 入力1, 出力32層、カーネル3
+        self.conv2 = nn.Conv2d(32, 64, 3, 1) # 
+        #self.conv2 = nn.Conv2d(32, 64, 3, 1)   # 入力32層, 出力64層、かーねる3
         self.dropout1 = nn.Dropout2d(0.25)     # 出力は 1/4 ドロップ
         self.dropout2 = nn.Dropout2d(0.5)      # 出力は 1/2 ドロップ
         self.fc1 = nn.Linear(9216, 128)        # in 9216 = 64 x 8 x 2 x 9
@@ -47,7 +47,8 @@ def train(args, model, device, train_loader, optimizer, epoch):
         optimizer.zero_grad()
         a = model(data)
         b = torch.t(a) # 行列を転置
-        output = torch.flatten(b) # [[n]] みたいになってるので内側の括弧を外す
+        d = torch.round(b)
+        output = torch.flatten(d) # [[n]] みたいになってるので内側の括弧を外す
         c = target.float()        # target は整数の行列なので float に変換する。
         # print(output)
         # print(target)
