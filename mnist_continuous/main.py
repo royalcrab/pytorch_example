@@ -81,7 +81,7 @@ def test(model, device, test_loader):
             
             c = target.float()
 
-            print(d)
+            print(e)
             print(c)
 
             mse = nn.MSELoss()
