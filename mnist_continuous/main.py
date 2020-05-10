@@ -75,12 +75,12 @@ def test(model, device, test_loader):
             b = torch.t(a)
             output = torch.flatten(b)
             c = target.float()
-#            test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
-            mse = nn.MSELoss()
+           test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
+            #mse = nn.MSELoss()
             # loss = mse(output, target)
             print(output)
             print(c)
-            test_loss += mse(output, c).item() # とりあえずここまではうまくいった
+            #test_loss += mse(output, c).item() # とりあえずここまではうまくいった
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
