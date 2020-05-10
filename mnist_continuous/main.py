@@ -24,18 +24,18 @@ class Net(nn.Module):
         
 
     def forward(self, x):
-        x = self.conv1(x)           # in 1 out 32, 3 x 3
+        x = self.conv1(x)           # 28 x 28 x 1 -> 26 x 26 x 32 (kernel=3 なので 28-3+1)
         x = F.relu(x)
-        x = self.conv2(x)           # in 32 out 64, 3 x 3
+        x = self.conv2(x)           # 26 x 26 x 32 -> 24 x 24 x 64  (kernel=3 なので 26-3+1)
         x = F.relu(x)
-        x = F.max_pool2d(x, 2)      # ここの捜査が多分いちばんわかってない。
-        x = self.dropout1(x)        # 1/4 ドロップ
-        x = torch.flatten(x, 1)     # 複数層 (3) を 1層にフラット化
-        x = self.fc1(x)             # ここの in が 9616 で 64 * 32 * 9 になってる。out は 128
+        x = F.max_pool2d(x, 2)      # 24 x 24 x 64  -> 12 x 12 x 64 (縦横とも 1/2 になるので 1/4)
+        x = self.dropout1(x)        # 1/4 ドロップ。サイズはかわらない
+        x = torch.flatten(x, 1)     # 複数層 (64) を 1層にフラット化 12 x 12 x 64 -> 9616
+        x = self.fc1(x)             # 9616 -> 128 全結合
         x = F.relu(x)
         x = self.dropout2(x)        # 1/2 ドロップ。ドロップしてもサイズはかわらない。
-        x = self.fc2(x)             # 入力 128
-        # x = F.log_softmax(x, dim=1) # softmax は
+        x = self.fc2(x)             # 128 -> 1 全結合
+        # x = F.log_softmax(x, dim=1)
         # output = self.mse(x)
         return x
 
@@ -77,14 +77,17 @@ def test(model, device, test_loader):
             b = torch.t(output)
             d = torch.flatten(b)
             e = torch.round(d)
+            
             c = target.float()
 
-            print(d)
+            print(e)
             print(c)
 
-            #test_loss += mse(output, c).item() # とりあえずここまではうまくいった
-            pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
-            correct += pred.eq(target.view_as(pred)).sum().item()
+            mse = nn.MSELoss()
+            test_loss += mse(d, c) # とりあえずここまではうまくいった
+            #pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+            # argmax: 各行中で 1 に近いアイテムの番号を返す.pred は配列。
+            correct += torch.eq(e, c).sum().item()
 
     test_loss /= len(test_loader.dataset)
 
