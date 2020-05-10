@@ -47,8 +47,8 @@ def train(args, model, device, train_loader, optimizer, epoch):
         optimizer.zero_grad()
         a = model(data)
         b = torch.t(a) # 行列を転置
-        d = torch.round(b)
-        output = torch.flatten(d) # [[n]] みたいになってるので内側の括弧を外す
+        # d = torch.round(b)
+        output = torch.flatten(b) # [[n]] みたいになってるので内側の括弧を外す
         c = target.float()        # target は整数の行列なので float に変換する。
         # print(output)
         # print(target)
@@ -81,7 +81,7 @@ def test(model, device, test_loader):
             
             c = target.float()
 
-            print(e)
+            print(d)
             print(c)
 
             mse = nn.MSELoss()
